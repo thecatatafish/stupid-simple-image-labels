@@ -1,0 +1,1 @@
+pyinstaller app.py --name ssil --onefile --add-data "static:static" --add-data "templates:templates"
