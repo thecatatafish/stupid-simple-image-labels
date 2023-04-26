@@ -1,0 +1,14 @@
+{%extends "base.html" %}
+
+{%block content%}
+<div class="image-flexbox">
+{% for key, images in labels.items() %}
+  <h2>Label: {{ key }}</h2>
+  <div class="image-flexbox">
+    {% for image in images %}
+      <img src="{{ url_for('images', path=image) }}" class="image-item">
+    {% endfor %}
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

@@ -1,9 +1,31 @@
+:root {
+	font-family: Avenir, Helvetica, Arial, sans-serif;
+	font-size: 18px;
+	line-height: 24px;
+	font-weight: 400;
+	scroll-behavior: smooth;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-text-size-adjust: 100%;
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none;
+}
+* {
+	box-sizing: border-box;
+}
+
+
 body {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     height: 100vh;
+	margin: 0 auto;
+	max-width: 960px;
+    color: #d5d5d5;
+    background: #232323;
 }
 
 img {
@@ -31,3 +53,8 @@ button:hover {
 button + button {
     margin-left: 20px;
 }
+
+image-flexbox {
+    display: flex;
+}
+

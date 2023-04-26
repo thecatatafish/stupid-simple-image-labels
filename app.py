@@ -54,7 +54,7 @@ def get_unlabelled_image():
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse(
-        "index.html",
+        "label-images.html",
         {
             "request": request,
             "buttons": get_classes(),
@@ -84,6 +84,19 @@ async def store_label(label: Label):
 async def store_label_checkpoint():
     store_labels(intermediate=True)
     return {"status": "success"}
+
+
+@app.get("/image/view")
+async def view_labelled_images(request: Request):
+
+    return templates.TemplateResponse(
+        "view-labels.html",
+        {
+            "request": request,
+            "labels": labels_dict,
+        },
+    )
+
 
 
 if __name__ == "__main__":
