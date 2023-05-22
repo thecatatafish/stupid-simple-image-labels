@@ -1,15 +1,65 @@
 {%extends "base.html" %}
+<script>
 
+</script>
 {%block content%}
-<div>
-    <button onclick="storeCheckpoint()">Save Checkpoint</button>
-    <h1>Label Some Images | <span id="remainingCounter">x</span> remaining</h1>
-    <p id="currentImageText"></p>
-    <img id="mainImage" src="">
+
+<div x-data="{imageSrc: 'https://alpinejs.dev/alpine_long.svg', remainingImages: 0}" class="main">
+
+    <div>
+        <img :src="imageSrc" alt="Dynamic Image" />
+    </div>
+    <div id="buttonContainer">
+        {% for button in buttons %}
+        <button type="button" @click="imageSrc=getNextImage">{{ button }}</button>
+        {% endfor %}
+    </div>
+
+    <script>
+        function getNextImage() {
+            fetch('/image/')
+                .then(response => response.json())
+                .then(data => {
+                    this.imageSrc = data.src
+                    remainingImages = data.numImagesRemaining
+                    // TODO: Set remaining images getRemainingCounter().innerHTML = remainingImages
+                    if (remainingImages === 0) {
+                        // TODO: Hide buttons
+                    }
+                }).catch(error => {
+                    console.error('Error fetching image:', error);
+                });
+
+        }
+
+        async function storeLabel(labelValue, imageName) {
+            let response = await fetch("/label/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "label": labelValue, "image": imageName })
+            })
+        }
+
+        async function storeAndGetNext(labelValue, imageName) {
+            storeLabel(labelValue, currentImage)
+            getNextImage()
+        }
+
+
+        function fetchImage() {
+            fetch('/image/')
+                .then(response => response.json())
+                .then(data => {
+                    this.imageSrc = data.src;
+                })
+                .catch(error => {
+                    console.error('Error fetching image:', error);
+                });
+        }
+    </script>
 </div>
-<div id="buttonContainer">
-    {% for button in buttons %}
-    <button type="button" onclick="storeAndGetNext('{{ button }}')">{{ button }}</button>
-    {% endfor %}
-</div>
+
+
+
+
 {% endblock %}
