@@ -6,8 +6,13 @@ import random
 
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, status
+from fastapi.exceptions import RequestValidationError
 from starlette.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+
+
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
@@ -32,6 +37,14 @@ templates = Jinja2Templates(directory=get_resource_path("templates"))
 
 labels_dict = load_labels()
 unlabelled_images = get_unlabelled_images(labels_dict)
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    print(exc.body, exc.errors())
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+    )
+
 
 
 def store_labels(intermediate: bool = False):
