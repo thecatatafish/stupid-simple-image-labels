@@ -1,14 +1,72 @@
 {%extends "base.html" %}
 
 {%block content%}
-<div class="image-flexbox">
-{% for key, images in labels.items() %}
-  <h2>Label: {{ key }}</h2>
-  <div class="image-flexbox">
-    {% for image in images %}
-      <img src="{{ url_for('images', path=image) }}" class="image-item">
-    {% endfor %}
+
+
+
+<div x-data="viewComponent()">
+  <div class="label-link-container">
+    <template x-for="(label, _) in Object.keys(labels)">
+      <a  :href="`#${label}`" x-text="label"></a>
+    </template>
   </div>
-{% endfor %}
+  <template x-for="(label, labelIndex) in Object.keys(labels)">
+    <div>
+      <h2 :id="label">Label: <span x-text="label"></span></h2>
+      <div class="view-image-container">
+        <template x-for="(imageName, imageIndex) in labels[label]">
+          <div class="image-tile">
+            <div class="thumbnail">
+              <img :src="fullImageUri(imageName)">
+            </div>
+            <button @click="removeLabel(label, imageName)">Remove Label</button>
+          </div>
+        </template>
+      </div>
+    </div>
+  </template>
+
+
+
 </div>
+
+<script>
+  function viewComponent() {
+    return {
+      imagePath: "{{ url_for('images', path='') }}",
+      labels: {},
+      fullImageUri(img) { return this.imagePath + img },
+
+      async fetchLabels() {
+        await fetch('/label/')
+          .then(response => response.json())
+          .then(data => {
+            this.labels = data
+          }).catch(error => {
+            console.error('Error fetching image:', error);
+          });
+      },
+
+      async removeLabel(labelValue, image) {
+        await fetch("/label/", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ "label": labelValue, "image": image })
+        }).then(response => {
+          if (response.ok) {
+            this.labels[labelValue] = this.labels[labelValue].filter(item => item !== image)
+          }
+        }).catch(error => { console.error("Error delting image", error) })
+      },
+
+      init() {
+        this.fetchLabels()
+      }
+    }
+  }
+
+</script>
+
+
+
 {% endblock %}

@@ -13,15 +13,13 @@ def get_resource_path(relative_path):
 
 
 def get_classes():
-    return [
-        str(subdir.name)
-        for subdir in Settings.DATA_SOURCE_PATH.iterdir()
-        if subdir.is_dir()
-    ]
+    class_file_uri = Settings.DATA_SOURCE_PATH.joinpath(f"classes.txt")
+    with open(class_file_uri, "r") as fid:
+        classes = fid.read().splitlines()
+    return [c for c in classes if c]
 
 
 def load_labels():
-    Settings.DATA_SOURCE_PATH.joinpath(f"labels.json")
     label_file_uri = Settings.DATA_SOURCE_PATH.joinpath(Settings.LABEL_FILE_NAME)
     if os.path.exists(label_file_uri):
         with open(label_file_uri, "r") as fid:

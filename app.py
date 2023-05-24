@@ -7,7 +7,7 @@ import random
 
 import uvicorn
 from fastapi import FastAPI, status
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import RequestValidationError, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -99,16 +99,29 @@ async def store_label_checkpoint():
     return {"status": "success"}
 
 
-@app.get("/image/view")
+@app.get("/view")
 async def view_labelled_images(request: Request):
-
     return templates.TemplateResponse(
         "view-labels.html",
         {
             "request": request,
-            "labels": labels_dict,
         },
     )
+
+
+@app.get("/label/")
+async def get_labelled_images(request: Request):
+    return labels_dict
+
+@app.delete("/label/")
+async def remove_label(label: Label):
+    images = labels_dict.get(label.label, [])
+    if images and label.image in images:
+        images.remove(label.image)
+        store_labels()
+        unlabelled_images.append(label.image)
+        return {"status": "success"}
+    raise HTTPException(status_code=404, detail="Item not found")
 
 
 

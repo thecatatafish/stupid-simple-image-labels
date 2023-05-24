@@ -1,47 +1,57 @@
 {%extends "base.html" %}
 {%block content%}
 
-<div x-data="{imageSrc: '', remainingImages: 0}" x-init="getNextImage" class="main">
-    <!-- <button onclick="storeCheckpoint()">Save Checkpoint</button> -->
-    <h1 x-text="imageSrc"></h1>
+<div x-data="imageComponent()" class="main">
+    <button @click="storeCheckpoint">Save Checkpoint</button>
     <h1>Label Some Images | <span x-text="remainingImages"></span> remaining</h1>
-    <img :src="imageSrc" alt="Dynamic Image" />
-    <div id="buttonContainer" x-show="remainingImages > 0">
+    <div class="image-container">
+        <img :src="imageSrc" alt="Missing image.." />
+    </div>
+    <div id="buttonContainer" x-show="remainingImages > 0" class="buttons">
         {% for button in buttons %}
-        <button type="button" @click="getNextImage">{{ button }}</button>
+        <button type="button" @click="storeAndGetNext('{{ button }}')">{{ button }}</button>
         {% endfor %}
     </div>
-
-    <script>
-        async function getNextImage() {
-            console.log("Starting fetching image")
-            await fetch('/image/')
-                .then(response => response.json())
-                .then(data => {
-                    this.imageSrc = data.src
-                    this.remainingImages = data.numImagesRemaining
-                }).catch(error => {
-                    console.error('Error fetching image:', error);
-                });
-            console.log("Done fetching image", this.imageSrc)
-        }
-
-
-
-        async function storeAndGetNext() {
-            // storeLabel(labelValue)
-            getNextImage()
-        }
-
-        async function storeLabel(labelValue) {
-            console.log(labelValue, this.imageSrc)
-            let response = await fetch("/label/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ label: labelValue, image: this.imageSrc })
-            })
-        }
-    </script>
 </div>
+
+
+<script>
+    function imageComponent() {
+        return {
+            imageSrc: '',
+            remainingImages: -1,
+            async getNextImage() {
+                await fetch('/image/')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.imageSrc = data.src
+                        this.remainingImages = data.numImagesRemaining
+                    }).catch(error => {
+                        console.error('Error fetching image:', error);
+                    });
+            },
+            async storeLabel(labelValue) {
+                console.log(labelValue, this.imageSrc)
+                let response = await fetch("/label/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ label: labelValue, image: this.imageSrc })
+                })
+            },
+            async storeAndGetNext(labelValue) {
+                this.storeLabel(labelValue)
+                this.getNextImage()
+            },
+
+            async storeCheckpoint() {
+                await fetch("/label/checkpoint/", { method: "POST", headers: { "Content-Type": "application/json" } })
+            },
+            init() {
+                this.getNextImage();
+            },
+        };
+    }
+</script>
+
 
 {% endblock %}
