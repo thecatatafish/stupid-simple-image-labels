@@ -4,23 +4,20 @@ import os
 import posixpath
 import random
 
-
 import uvicorn
 from fastapi import FastAPI, status
-from fastapi.exceptions import RequestValidationError, HTTPException
-from starlette.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-
-
+from fastapi.exceptions import HTTPException, RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from models import Image, Label
+from models import Classes, Image, Label
 from settings import Settings
-from utilities import load_labels, get_unlabelled_images, get_classes, get_resource_path
+from utilities import get_classes, get_resource_path, get_unlabelled_images, load_labels
 
 app = FastAPI()
 app.add_middleware(
@@ -37,6 +34,8 @@ templates = Jinja2Templates(directory=get_resource_path("templates"))
 
 labels_dict = load_labels()
 unlabelled_images = get_unlabelled_images(labels_dict)
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     print(exc.body, exc.errors())
@@ -44,7 +43,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
     )
-
 
 
 def store_labels(intermediate: bool = False):
@@ -70,9 +68,13 @@ async def index(request: Request):
         "label-images.html",
         {
             "request": request,
-            "buttons": get_classes(),
         },
     )
+
+
+@app.get("/classes/", response_model=Classes)
+def fetch_classes():
+    return {"class_names": get_classes()}
 
 
 @app.get("/image/", response_model=Image)
@@ -110,8 +112,9 @@ async def view_labelled_images(request: Request):
 
 
 @app.get("/label/")
-async def get_labelled_images(request: Request):
+async def get_labelled_images():
     return labels_dict
+
 
 @app.delete("/label/")
 async def remove_label(label: Label):
@@ -122,7 +125,6 @@ async def remove_label(label: Label):
         unlabelled_images.append(label.image)
         return {"status": "success"}
     raise HTTPException(status_code=404, detail="Item not found")
-
 
 
 if __name__ == "__main__":

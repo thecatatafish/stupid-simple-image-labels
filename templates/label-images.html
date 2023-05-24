@@ -8,9 +8,9 @@
         <img :src="imageSrc" alt="Missing image.." />
     </div>
     <div id="buttonContainer" x-show="remainingImages > 0" class="buttons">
-        {% for button in buttons %}
-        <button type="button" @click="storeAndGetNext('{{ button }}')">{{ button }}</button>
-        {% endfor %}
+        <template x-for="(button, _) in buttons">
+            <button type="button" @click="storeAndGetNext(button)" x-text="button"></button>
+        </template>
     </div>
 </div>
 
@@ -20,6 +20,7 @@
         return {
             imageSrc: '',
             remainingImages: -1,
+            buttons: [],
             async getNextImage() {
                 await fetch('/image/')
                     .then(response => response.json())
@@ -46,10 +47,22 @@
             async storeCheckpoint() {
                 await fetch("/label/checkpoint/", { method: "POST", headers: { "Content-Type": "application/json" } })
             },
+            async fetchButtons() {
+                await fetch('/classes/', {
+                    headers: { "Content-Type": "application/json" },
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        this.buttons = data.class_names
+                    }).catch(error => {
+                        console.error('Error fetching image:', error);
+                    });
+            },
             init() {
                 this.getNextImage();
-            },
-        };
+                this.fetchButtons()
+            }
+        }
     }
 </script>
 
