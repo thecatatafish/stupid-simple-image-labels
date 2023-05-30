@@ -28,7 +28,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/images", StaticFiles(directory=Settings.DATA_SOURCE_ROOT), name="images")
+app.mount(
+    Settings.DATA_SOURCE_ROOT.replace(".", ""),
+    StaticFiles(directory=Settings.DATA_SOURCE_ROOT),
+    name="images",
+)
 app.mount("/static", StaticFiles(directory=get_resource_path("static")), name="static")
 templates = Jinja2Templates(directory=get_resource_path("templates"))
 
